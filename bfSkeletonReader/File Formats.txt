@@ -1,0 +1,32 @@
+Skeleton (.ske) {
+	uint32 version			//Supported: version 2
+	uint32 boneCount
+	Bone bones[boneCount]
+	
+	Bone {
+		uint16 nameLength
+		char name[nameLength]	// C string (length includes \0)
+		int16 parent
+		float rotation[4]		// x, y, z, w
+		float position[3]		// x, y, z
+	};
+}
+
+
+Animation (.baf) {
+	uint32 version
+	uint16 bonenum
+	uint16 boneids[bonenum]
+	uint32 framenum
+	uint8 precision		//clear what this means
+
+	for every bone {
+		uint16 datasize
+		
+		7 streams of 16-bit floating point values
+        * first four are XYZW that store quaternion rotation 0.16 fixed
+        * next three are XYZ that store the position (15 - precision).(1 + precision) fixed
+        * each stream may be RLE compressed
+		* streams consist of blocks with 8bit header MSB is RLE remaining 7 is frame num
+	}
+}
