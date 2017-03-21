@@ -10,10 +10,10 @@ using namespace rapidxml;
 SkinnedMesh::SkinnedMesh(std::istream& stream, const Skeleton& skeleton)
 	:skeleton(skeleton)
 {
-	stream.ignore(1*4);	//unused
+	stream.ignore(1 * 4);	//unused
 	readBinary(stream, &version);
-	stream.ignore(3*4);
-	
+	stream.ignore(3 * 4);
+
 	//Geometry table
 	stream.ignore(1);
 	uint32_t geomCount;
@@ -66,12 +66,17 @@ void SkinnedMesh::writeToCollada(xml_document<>& doc, xml_node<>* root) const
 	xml_node<>* libraryControllers = root->first_node("library_controllers");
 	xml_node<>* visualScene = root->first_node("library_visual_scenes")->first_node("visual_scene");
 
-	for (size_t geom = 0; geom < geometrys.size(); geom++) {
-		for (size_t lod = 0; lod < geometrys[geom].lods.size(); lod++) {
-			std::string objectName = "Geom_" + std::to_string(geom + 1) + "-Lod_" + std::to_string(lod);
-			char* meshId = writeGeometry(doc, libraryGeometries, objectName, geometrys[geom].lods[lod]);
-			char* skinId = writeSkinController(doc, libraryControllers, objectName, geometrys[geom].lods[lod], meshId);
-			writeSceneObject(doc, visualScene, objectName, geometrys[geom].lods[lod], skinId);
+	size_t objectId = 0;
+	for (const Geometry& geom : geometrys) {
+		for (const Lod& lod : geom.lods) {
+			for (size_t iMaterial = 0; iMaterial < lod.materials.size(); iMaterial++) {
+				const Material& material = lod.materials[iMaterial];
+				std::string objectName = "Object_" + std::to_string(objectId);
+				char* meshId = writeGeometry(doc, libraryGeometries, objectName, material);
+				char* skinId = writeSkinController(doc, libraryControllers, objectName, material, lod.rigs[iMaterial], meshId);
+				writeSceneObject(doc, visualScene, objectName, skinId);
+				objectId++;
+			}
 		}
 	}
 }
@@ -122,18 +127,18 @@ void SkinnedMesh::readMaterials(std::istream& stream, Lod& lod) const
 	}
 }
 
-char *SkinnedMesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometries, const std::string& objectName, const Lod& lod) const
+char *SkinnedMesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometries, const std::string& objectName, const Material& material) const
 {
 	xml_node<>* geometry = doc.allocate_node(node_element, "geometry");
 	char* meshId = setId(doc, geometry, objectName, "-mesh");
 	{
 		xml_node<>* mesh = doc.allocate_node(node_element, "mesh");
 		{
-			std::pair<char*, size_t> positionData = writeVertexData(doc, lod, VertexAttrib::position);
+			std::pair<char*, size_t> positionData = writeVertexData(doc, material, VertexAttrib::position);
 			char* positionsId = writeSourceNode(doc, mesh, objectName + "-mesh-positions", positionData.first, positionData.second, Format::xyz);
-			std::pair<char*, size_t> normalData = writeVertexData(doc, lod, VertexAttrib::normal);
+			std::pair<char*, size_t> normalData = writeVertexData(doc, material, VertexAttrib::normal);
 			char* normalsId = writeSourceNode(doc, mesh, objectName + "-mesh-normals", normalData.first, normalData.second, Format::xyz);
-			std::pair<char*, size_t> texData = writeVertexData(doc, lod, VertexAttrib::uv1);
+			std::pair<char*, size_t> texData = writeVertexData(doc, material, VertexAttrib::uv1);
 			char* texId = writeSourceNode(doc, mesh, objectName + "-mesh-map", texData.first, texData.second, Format::st);
 
 			xml_node<>* vertices = doc.allocate_node(node_element, "vertices");
@@ -150,7 +155,7 @@ char *SkinnedMesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometr
 			{
 				size_t polyCount;
 				char* indexData;
-				std::tie(indexData, polyCount) = computeIndices(doc, lod, 3);
+				std::tie(indexData, polyCount) = computeIndices(doc, material, 3);
 				polylist->append_attribute(doc.allocate_attribute("count", doc.allocate_string(std::to_string(polyCount).c_str())));
 
 				xml_node<> *input = doc.allocate_node(node_element, "input");
@@ -180,7 +185,7 @@ char *SkinnedMesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometr
 	return meshId;
 }
 
-char* SkinnedMesh::writeSkinController(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryControllers, const std::string& objectName, const Lod& lod, const char* meshId) const
+char* SkinnedMesh::writeSkinController(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryControllers, const std::string& objectName, const Material& material, const Rig& rig, const char* meshId) const
 {
 	xml_node<>* controller = doc.allocate_node(node_element, "controller");
 	char* skinId = setId(doc, controller, objectName, "-skin");
@@ -189,13 +194,13 @@ char* SkinnedMesh::writeSkinController(rapidxml::xml_document<>& doc, rapidxml::
 		{
 			skin->append_attribute(doc.allocate_attribute("source", meshId));
 
-			std::pair<char*, size_t> jointData = writeBoneNames(doc, lod);
+			std::pair<char*, size_t> jointData = writeBoneNames(doc, rig);
 			char* jointsId = writeSourceNode(doc, skin, objectName + "-skin-joints", jointData.first, jointData.second, Format::joint);
-			std::pair<char*, size_t> poseData = writeBonePoses(doc, lod);
+			std::pair<char*, size_t> poseData = writeBonePoses(doc, rig);
 			char* posesId = writeSourceNode(doc, skin, objectName + "-skin-poses", poseData.first, poseData.second, Format::transform);
 			std::vector<float> weightData;
 			std::vector<size_t> indexData;
-			size_t vertexCount = computeVertexWeights(lod, weightData, indexData);
+			size_t vertexCount = computeVertexWeights(material, weightData, indexData);
 			char* weightsId = writeSourceNode(doc, skin, objectName + "-skin-weights", floatsToString(doc, weightData), weightData.size(), Format::weight);
 
 			xml_node<>* joints = doc.allocate_node(node_element, "joints");
@@ -236,7 +241,7 @@ char* SkinnedMesh::writeSkinController(rapidxml::xml_document<>& doc, rapidxml::
 	return skinId;
 }
 
-void SkinnedMesh::writeSceneObject(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* visualScene, const std::string& objectName, const Lod& lod, const char* skinId) const
+void SkinnedMesh::writeSceneObject(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* visualScene, const std::string& objectName, const char* skinId) const
 {
 	xml_node<>* node = doc.allocate_node(node_element, "node");
 	{
@@ -267,58 +272,52 @@ char* SkinnedMesh::writeValueNtimes(rapidxml::xml_document<>& doc, size_t count,
 	return doc.allocate_string(result.c_str(), result.length() + 1);
 }
 
-std::pair<char*, size_t> SkinnedMesh::computeIndices(rapidxml::xml_document<>& doc, const Lod& lod, size_t inputCount) const
+std::pair<char*, size_t> SkinnedMesh::computeIndices(rapidxml::xml_document<>& doc, const Material& material, size_t inputCount) const
 {
 	std::stringstream ss;
 	size_t polycount = 0;
-	int firstOffset = lod.materials[0].vertexOffset;
-	for (const Material& material : lod.materials) {
-		for (size_t i = 0; i < material.indexCount; i++) {
-			for (size_t input = 0; input < inputCount; input++) {
-				//Index 0 corrresponds to vertex[vertexOffset]
-				//all materials are combined in one Buffer
-				ss << indices[material.indexOffset + i] + (material.vertexOffset - firstOffset) << " ";
-			}
+	for (size_t i = 0; i < material.indexCount; i++) {
+		for (size_t input = 0; input < inputCount; input++) {
+			ss << indices[material.indexOffset + i] << " ";
 		}
-		polycount += material.indexCount / 3;
 	}
+	polycount += material.indexCount / 3;
+
 	std::string result = ss.str();
 	result.pop_back();
 	return std::pair<char*, size_t>(doc.allocate_string(result.c_str(), result.length() + 1), polycount);
 }
 
-std::pair<char*, size_t> SkinnedMesh::writeBoneNames(rapidxml::xml_document<>& doc, const Lod& lod) const
+std::pair<char*, size_t> SkinnedMesh::writeBoneNames(rapidxml::xml_document<>& doc, const Rig& rig) const
 {
 	std::stringstream ss;
 	size_t count = 0;
-	for (const Rig& rig : lod.rigs) {
-		for (const MeshBone& bone : rig.bones) {
-			ss << skeleton.bones[bone.id].name << " ";
-		}
-		count += rig.bones.size();
+	for (const MeshBone& bone : rig.bones) {
+		ss << skeleton.bones[bone.id].name << " ";
 	}
+	count += rig.bones.size();
+
 	std::string data = ss.str();
 	data.pop_back();
 	return std::pair<char*, size_t>(doc.allocate_string(data.c_str(), data.length() + 1), count);
 }
 
-std::pair<char*, size_t> SkinnedMesh::writeBonePoses(rapidxml::xml_document<>& doc, const Lod& lod) const
+std::pair<char*, size_t> SkinnedMesh::writeBonePoses(rapidxml::xml_document<>& doc, const Rig& rig) const
 {
 	std::stringstream ss;
 	size_t count = 0;
-	for (const Rig& rig : lod.rigs) {
-		for (const MeshBone& bone : rig.bones) {
-			writeMatrixToStream(ss, bone.matrix);
-		}
-		count += rig.bones.size();
+	for (const MeshBone& bone : rig.bones) {
+		writeMatrixToStream(ss, bone.matrix);
 	}
+	count += rig.bones.size();
+
 	std::string data = ss.str();
 	data.pop_back();
 
 	return std::pair<char*, size_t>(doc.allocate_string(data.c_str(), data.length() + 1), count);
 }
 
-std::pair<char*, size_t> SkinnedMesh::writeVertexData(rapidxml::xml_document<>& doc, const Lod& lod, VertexAttrib::Usage usage) const
+std::pair<char*, size_t> SkinnedMesh::writeVertexData(rapidxml::xml_document<>& doc, const Material& material, VertexAttrib::Usage usage) const
 {
 	size_t offset = -1;
 	size_t elementCount;
@@ -336,20 +335,18 @@ std::pair<char*, size_t> SkinnedMesh::writeVertexData(rapidxml::xml_document<>& 
 
 	std::stringstream ss;
 	size_t count = 0;
-	for (const Material& material : lod.materials) {
-		for (size_t i = 0; i < material.vertexCount; i++) {
-			for (size_t elem = 0; elem < elementCount; elem++) {
-				ss << vertices[(material.vertexOffset + i)*vertexstride / vertexformat + offset + elem] << " ";
-			}
-			count++;
+	for (size_t i = 0; i < material.vertexCount; i++) {
+		for (size_t elem = 0; elem < elementCount; elem++) {
+			ss << vertices[(material.vertexOffset + i)*vertexstride / vertexformat + offset + elem] << " ";
 		}
+		count++;
 	}
 	std::string result = ss.str();
 	result.pop_back();
 	return std::pair<char*, size_t>(doc.allocate_string(result.c_str(), result.length() + 1), count);
 }
 
-size_t SkinnedMesh::computeVertexWeights(const Lod& lod, std::vector<float>& weightData, std::vector<size_t>& indexData) const
+size_t SkinnedMesh::computeVertexWeights(const Material& material, std::vector<float>& weightData, std::vector<size_t>& indexData) const
 {
 	size_t indexOffset = -1;
 	size_t weightOffset = -1;
@@ -365,27 +362,22 @@ size_t SkinnedMesh::computeVertexWeights(const Lod& lod, std::vector<float>& wei
 
 	std::map<float, size_t> weightIndexMap;
 	size_t vertexCount = 0;
-	size_t boneNameOffset = 0;
-	size_t rigIndex = 0;
-	for (const Material& material : lod.materials) {
-		for (size_t i = 0; i < material.vertexCount; i++) {
-			size_t vertexBase = (material.vertexOffset + i)*vertexstride / vertexformat;
-			std::vector<float> weights(2);
-			weights[0] = 1 - vertices[vertexBase + weightOffset];
-			weights[1] = 1 - weights[0];
-			const glm::u8vec4 poseIndices = reinterpret_cast<const glm::u8vec4&>(vertices[vertexBase + indexOffset]);
+	for (size_t i = 0; i < material.vertexCount; i++) {
+		size_t vertexBase = (material.vertexOffset + i)*vertexstride / vertexformat;
+		std::vector<float> weights(2);
+		weights[0] = 1 - vertices[vertexBase + weightOffset];
+		weights[1] = 1 - weights[0];
+		const glm::u8vec4 poseIndices = reinterpret_cast<const glm::u8vec4&>(vertices[vertexBase + indexOffset]);
 
-			for (size_t w = 0; w < weights.size(); w++) {
-				indexData.push_back(poseIndices[w] + boneNameOffset);
-				auto ins = weightIndexMap.insert(std::make_pair(weights[w], weightData.size()));
-				if (ins.second)
-					weightData.push_back(weights[w]);
-				indexData.push_back(ins.first->second);
-			}
-			vertexCount++;
+		for (size_t w = 0; w < weights.size(); w++) {
+			indexData.push_back(poseIndices[w]);
+			auto ins = weightIndexMap.insert(std::make_pair(weights[w], weightData.size()));
+			if (ins.second)
+				weightData.push_back(weights[w]);
+			indexData.push_back(ins.first->second);
 		}
-		boneNameOffset += lod.rigs[rigIndex].bones.size();
-		rigIndex++;
+		vertexCount++;
 	}
+
 	return vertexCount;
 }

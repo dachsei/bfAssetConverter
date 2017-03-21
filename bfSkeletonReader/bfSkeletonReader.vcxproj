@@ -146,14 +146,12 @@
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Skeleton.cpp" />
-    <ClCompile Include="SkinnedMesh2.cpp" />
     <ClCompile Include="SkinnedMesh.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation.h" />
     <ClInclude Include="Skeleton.h" />
-    <ClInclude Include="SkinnedMesh2.h" />
     <ClInclude Include="SkinnedMesh.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>

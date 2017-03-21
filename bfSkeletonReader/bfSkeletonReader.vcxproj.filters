@@ -30,9 +30,6 @@
     <ClCompile Include="SkinnedMesh.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="SkinnedMesh2.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Skeleton.h">
@@ -45,9 +42,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="SkinnedMesh.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="SkinnedMesh2.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

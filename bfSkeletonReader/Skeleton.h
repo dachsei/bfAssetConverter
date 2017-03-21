@@ -27,5 +27,4 @@ private:
 
 	friend class Animation;
 	friend class SkinnedMesh;
-	friend class SkinnedMesh2;	//TODO: remove
 };

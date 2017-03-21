@@ -3,7 +3,6 @@
 #include <rapidxml/rapidxml_print.hpp>
 #include "Skeleton.h"
 #include "Animation.h"
-#include "SkinnedMesh2.h"
 
 int main(int argc, char **argv)
 {
@@ -33,11 +32,6 @@ int main(int argc, char **argv)
 		Animation animation{ animationFile, skeleton };
 		animation.writeToCollada(doc, root);
 	}
-
-	/*std::ifstream meshFile{ "C:/Users/phili/Desktop/BFH/british_male_soldier/meshes/british_male_soldier.skinnedmesh",
-		std::ifstream::in | std::ifstream::binary };
-	SkinnedMesh2 mesh{ meshFile,skeleton };
-	mesh.writeToCollada(doc, root);*/
 
 	std::ofstream output{ "C:/Users/phili/Desktop/asdf.dae" };
 	output << doc;
