@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	rapidxml::xml_node<> *root = Utils::createColladaFramework(doc);
 	skeleton.writeToCollada(doc, root);
 
-	/*if (argc >= 3) {
+	if (argc >= 3) {
 		std::ifstream animationFile{ argv[2], std::ifstream::in | std::ifstream::binary };
 		if (!animationFile.good()) {
 			std::cout << "Could not open animation file " << argv[2] << std::endl;
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 
 		Animation animation{ animationFile, skeleton };
 		animation.writeToCollada(doc, root);
-	}*/
+	}
 
 	/*std::ifstream meshFile{ "C:/Users/phili/Desktop/BFH/british_male_soldier/meshes/british_male_soldier.skinnedmesh",
 		std::ifstream::in | std::ifstream::binary };

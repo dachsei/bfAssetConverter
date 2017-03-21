@@ -29,8 +29,8 @@ float Utils::decompFloat(int16_t value, uint8_t precision)
 std::string Utils::formatMatrix(glm::vec3 pos, glm::quat rot)
 {
 	std::stringstream ss;
-	glm::mat4 localMat = glm::translate(glm::mat4(), pos) * glm::mat4_cast(rot);
-	writeMatrixToStream(ss, localMat);
+	glm::mat4 boneMat = glm::translate(glm::mat4(), pos) * glm::mat4_cast(rot);
+	writeMatrixToStream(ss, boneMat);
 	std::string result = ss.str();
 	result.pop_back();
 	return result;
@@ -40,8 +40,7 @@ char *Utils::allocateAndComputeMatrixStream(rapidxml::xml_document<>& doc, const
 {
 	std::stringstream ss;
 	for (size_t i = 0; i < positionStream.size(); i++) {
-		glm::mat4 localMat = glm::translate(glm::mat4_cast(rotationStream[i]), positionStream[i]);
-		localMat = glm::inverse(localMat);
+		glm::mat4 localMat = glm::translate(glm::mat4(), positionStream[i]) * glm::mat4_cast(rotationStream[i]);
 		writeMatrixToStream(ss, localMat);
 	}
 

@@ -195,6 +195,9 @@ Animation::BoneData Animation::readBoneData(std::istream& stream, uint16_t boneI
 			dataLeft -= nextHeader;
 		}
 	}
+	for (glm::quat& rot : result.rotationStream) {
+		rot = glm::inverse(rot);
+	}
 
 	return result;
 }
