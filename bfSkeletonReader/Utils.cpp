@@ -78,10 +78,13 @@ char* Utils::writeSourceNode(rapidxml::xml_document<>& doc, rapidxml::xml_node<>
 		switch (format)
 		{
 		case Format::weight:
-		case Format::joint:
 		case Format::time:
-		case Format::interpolation:
 			arrayNode = doc.allocate_node(node_element, "float_array", dataString);
+			arrayNode->append_attribute(doc.allocate_attribute("count", doc.allocate_string(std::to_string(elemCount).c_str())));
+			break;
+		case Format::joint:
+		case Format::interpolation:
+			arrayNode = doc.allocate_node(node_element, "Name_array", dataString);
 			arrayNode->append_attribute(doc.allocate_attribute("count", doc.allocate_string(std::to_string(elemCount).c_str())));
 			break;
 		case Format::st:
@@ -166,7 +169,7 @@ char* Utils::writeSourceNode(rapidxml::xml_document<>& doc, rapidxml::xml_node<>
 
 					param = doc.allocate_node(node_element, "param");
 					param->append_attribute(doc.allocate_attribute("name", "TIME"));
-					param->append_attribute(doc.allocate_attribute("type", "name"));
+					param->append_attribute(doc.allocate_attribute("type", "float"));
 					accessor->append_node(param);
 					break;
 				case Format::interpolation:
