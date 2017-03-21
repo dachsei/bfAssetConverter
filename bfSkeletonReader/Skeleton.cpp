@@ -28,9 +28,10 @@ void Skeleton::writeToCollada(xml_document<>& doc, xml_node<> *root) const
 		const Bone& bone = bones[i];
 		parents[i] = node;
 
-		node->append_attribute(doc.allocate_attribute("id", bone.name.c_str()));
-		node->append_attribute(doc.allocate_attribute("name", bone.name.c_str()));
-		node->append_attribute(doc.allocate_attribute("sid", bone.name.c_str()));
+		char* boneName = doc.allocate_string(bone.name.c_str(), bone.name.length() + 1);
+		node->append_attribute(doc.allocate_attribute("id", boneName));
+		node->append_attribute(doc.allocate_attribute("name", boneName));
+		node->append_attribute(doc.allocate_attribute("sid", boneName));
 		node->append_attribute(doc.allocate_attribute("type", "JOINT"));
 
 		char *matrixData = doc.allocate_string(formatMatrix(bone.position, bone.rotation).c_str());
@@ -56,6 +57,7 @@ Skeleton::Bone Skeleton::readBone(std::istream& stream) const
 
 	readBinary(stream, &bone.parent);
 	readBinary(stream, &bone.rotation);
+	bone.rotation = glm::inverse(bone.rotation);
 	readBinary(stream, &bone.position);
 
 	return bone;
@@ -74,7 +76,6 @@ xml_node<>* Skeleton::createArmatureNode(xml_document<>& doc, xml_node<> *root) 
 	xml_node<> *matrix = doc.allocate_node(node_element, "matrix");
 	armatureNode->append_node(matrix);
 	matrix->append_attribute(doc.allocate_attribute("sid", "transform"));
-	//matrix->append_node(doc.allocate_node(node_data, nullptr, "1 0 0 0 0 0 1 0 0 -1 0 0 0 0 0 1"));		//rotate upwards
 
 	return armatureNode;
 }

@@ -29,9 +29,7 @@ float Utils::decompFloat(int16_t value, uint8_t precision)
 std::string Utils::formatMatrix(glm::vec3 pos, glm::quat rot)
 {
 	std::stringstream ss;
-	glm::mat4 localMat = glm::translate(glm::mat4_cast(rot), pos);
-	localMat = glm::inverse(localMat);
-
+	glm::mat4 localMat = glm::translate(glm::mat4(), pos) * glm::mat4_cast(rot);
 	writeMatrixToStream(ss, localMat);
 	std::string result = ss.str();
 	result.pop_back();
@@ -214,7 +212,7 @@ rapidxml::xml_node<>* Utils::createColladaFramework(rapidxml::xml_document<>& do
 	unit->append_attribute(doc.allocate_attribute("name", "meter"));
 	unit->append_attribute(doc.allocate_attribute("meter", "1"));
 	asset->append_node(unit);
-	asset->append_node(doc.allocate_node(node_element, "up_axis", "Z_UP"));
+	asset->append_node(doc.allocate_node(node_element, "up_axis", "Y_UP"));
 	root->append_node(asset);
 
 	root->append_node(doc.allocate_node(node_element, "library_images"));

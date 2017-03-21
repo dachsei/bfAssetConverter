@@ -34,10 +34,10 @@ int main(int argc, char **argv)
 		animation.writeToCollada(doc, root);
 	}*/
 
-	std::ifstream meshFile{ "C:/Users/phili/Desktop/BFH/british_male_soldier/meshes/british_male_soldier.skinnedmesh",
+	/*std::ifstream meshFile{ "C:/Users/phili/Desktop/BFH/british_male_soldier/meshes/british_male_soldier.skinnedmesh",
 		std::ifstream::in | std::ifstream::binary };
 	SkinnedMesh2 mesh{ meshFile,skeleton };
-	mesh.writeToCollada(doc, root);
+	mesh.writeToCollada(doc, root);*/
 
 	std::ofstream output{ "C:/Users/phili/Desktop/asdf.dae" };
 	output << doc;
