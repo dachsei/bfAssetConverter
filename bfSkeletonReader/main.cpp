@@ -1,10 +1,11 @@
 #include <iostream>
 #include <fstream>
 #include <rapidxml/rapidxml_print.hpp>
+#include "Utils.h"
 #include "Skeleton.h"
 #include "Animation.h"
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
 	if (argc < 2) {
 		std::cout << "The .ske file must be specified as parameter" << std::endl;
@@ -19,7 +20,7 @@ int main(int argc, char **argv)
 
 	Skeleton skeleton{ skeFile };
 	rapidxml::xml_document<> doc;
-	rapidxml::xml_node<> *root = Utils::createColladaFramework(doc);
+	rapidxml::xml_node<>* root = Utils::createColladaFramework(doc);
 	skeleton.writeToCollada(doc, root);
 
 	if (argc >= 3) {

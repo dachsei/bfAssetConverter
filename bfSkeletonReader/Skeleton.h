@@ -1,6 +1,8 @@
 #pragma once
-#include "Utils.h"
 #include <vector>
+#include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <rapidxml/rapidxml.hpp>
 
 class Skeleton
 {
@@ -8,7 +10,7 @@ public:
 	Skeleton(std::istream& stream);
 	~Skeleton() = default;
 
-	void writeToCollada(rapidxml::xml_document<>& doc, rapidxml::xml_node<> *root) const;
+	void writeToCollada(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* root) const;
 
 private:
 	struct Bone {
@@ -19,10 +21,9 @@ private:
 	};
 
 	Bone readBone(std::istream& stream) const;
-	rapidxml::xml_node<>* Skeleton::createArmatureNode(rapidxml::xml_document<>& doc, rapidxml::xml_node<> *root) const;
+	rapidxml::xml_node<>* Skeleton::createArmatureNode(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* root) const;
 
 	uint32_t version;
-	uint32_t boneCount;
 	std::vector<Bone> bones;
 
 	friend class Animation;

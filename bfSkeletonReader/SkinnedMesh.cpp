@@ -1,8 +1,7 @@
 #include "SkinnedMesh.h"
-#include <string>
 #include <sstream>
-#include <tuple>
 #include <map>
+#include "Utils.h"
 
 using namespace Utils;
 using namespace rapidxml;
@@ -19,10 +18,10 @@ SkinnedMesh::SkinnedMesh(std::istream& stream, const Skeleton& skeleton)
 	uint32_t geomCount;
 	readBinary(stream, &geomCount);
 	geometrys.resize(geomCount);
-	for (Geometry& i : geometrys) {
+	for (Geometry& it : geometrys) {
 		uint32_t lodCount;
 		readBinary(stream, &lodCount);
-		i.lods.resize(lodCount);
+		it.lods.resize(lodCount);
 	}
 
 	//Vertex attribute table
@@ -130,7 +129,7 @@ void SkinnedMesh::readMaterials(std::istream& stream, Lod& lod) const
 char *SkinnedMesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometries, const std::string& objectName, const Material& material) const
 {
 	xml_node<>* geometry = doc.allocate_node(node_element, "geometry");
-	char* meshId = setId(doc, geometry, objectName, "-mesh");
+	char* meshId = setId(doc, geometry, objectName + "-mesh");
 	{
 		xml_node<>* mesh = doc.allocate_node(node_element, "mesh");
 		{
@@ -142,7 +141,7 @@ char *SkinnedMesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometr
 			char* texId = writeSourceNode(doc, mesh, objectName + "-mesh-map", texData.first, texData.second, Format::st);
 
 			xml_node<>* vertices = doc.allocate_node(node_element, "vertices");
-			char* verticesId = setId(doc, vertices, objectName, "-mesh-vertices");
+			char* verticesId = setId(doc, vertices, objectName + "-mesh-vertices");
 			{
 				xml_node<>* input = doc.allocate_node(node_element, "input");
 				input->append_attribute(doc.allocate_attribute("semantic", "POSITION"));
@@ -188,7 +187,7 @@ char *SkinnedMesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometr
 char* SkinnedMesh::writeSkinController(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryControllers, const std::string& objectName, const Material& material, const Rig& rig, const char* meshId) const
 {
 	xml_node<>* controller = doc.allocate_node(node_element, "controller");
-	char* skinId = setId(doc, controller, objectName, "-skin");
+	char* skinId = setId(doc, controller, objectName + "-skin");
 	{
 		xml_node<>* skin = doc.allocate_node(node_element, "skin");
 		{

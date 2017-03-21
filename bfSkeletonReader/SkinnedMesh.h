@@ -1,6 +1,7 @@
 #pragma once
 #include "Skeleton.h"
-#include "Utils.h"
+#include <glm/glm.hpp>
+#include <rapidxml/rapidxml.hpp>
 
 class SkinnedMesh
 {
@@ -53,7 +54,7 @@ private:
 	void readRigs(std::istream& stream, Lod& lod) const;
 	void readMaterials(std::istream& stream, Lod& lod) const;
 
-	char* writeGeometry(rapidxml::xml_document<>& doc, rapidxml::xml_node<> *libraryGeometries, const std::string& objectName, const Material& material) const;
+	char* writeGeometry(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryGeometries, const std::string& objectName, const Material& material) const;
 	char* writeSkinController(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryControllers, const std::string& objectName, const Material& material, const Rig& rig, const char* meshId) const;
 	void writeSceneObject(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* visualScene, const std::string& objectName, const char* skinId) const;
 	char* writeValueNtimes(rapidxml::xml_document<>& doc, size_t count, char* value) const;
