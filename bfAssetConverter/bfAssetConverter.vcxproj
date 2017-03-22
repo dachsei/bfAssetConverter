@@ -157,6 +157,9 @@
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="BMS_Ability_ExplosiveKeg.baf" />
+    <None Include="british_male_soldier.ske" />
+    <None Include="british_male_soldier.skinnedmesh" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
