@@ -20,10 +20,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{BAAA9E1F-2B46-423E-BF82-47A234AB722A}</ProjectGuid>
+    <ProjectGuid>{34F28378-D586-40DE-A614-BA9FADA8B1E1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>bfSkeletonReader</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>bfAssetConverter</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
