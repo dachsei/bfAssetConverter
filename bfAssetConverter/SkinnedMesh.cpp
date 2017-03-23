@@ -1,7 +1,6 @@
 #include "SkinnedMesh.h"
 #include <sstream>
 #include <map>
-#include "Utils.h"
 
 using namespace Utils;
 using namespace rapidxml;

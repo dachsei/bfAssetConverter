@@ -1,15 +1,14 @@
 #include "Skeleton.h"
-#include "Utils.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 using namespace Utils;
 using namespace rapidxml;
 
-Skeleton::Skeleton(std::istream& stream)
+Skeleton::Skeleton(std::istream& stream) throw(Utils::ConversionError)
 {
 	readBinary(stream, &version);
 	if (version != 2)
-		throw std::runtime_error("Version is not supported");
+		throw Utils::ConversionError("Version is not supported");
 
 	uint32_t boneCount;
 	readBinary(stream, &boneCount);

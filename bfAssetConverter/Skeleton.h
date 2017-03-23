@@ -1,13 +1,10 @@
 #pragma once
-#include <vector>
-#include <glm/vec3.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <rapidxml/rapidxml.hpp>
+#include "Utils.h"
 
 class Skeleton
 {
 public:
-	Skeleton(std::istream& stream);
+	Skeleton(std::istream& stream) throw(Utils::ConversionError);
 	~Skeleton() = default;
 
 	void writeToCollada(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* root) const;

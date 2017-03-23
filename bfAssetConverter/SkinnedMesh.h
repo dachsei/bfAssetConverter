@@ -1,7 +1,5 @@
 #pragma once
 #include "Skeleton.h"
-#include <glm/glm.hpp>
-#include <rapidxml/rapidxml.hpp>
 
 class SkinnedMesh
 {

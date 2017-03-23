@@ -9,7 +9,7 @@
 
 std::string getExtension(const std::string& filename);
 std::string defaultOutputFile(const std::string& filename);
-void convertFile(std::istream& input, std::ostream& output, const std::string& extension, const Skeleton* skeleton);
+void convertFile(std::istream& input, std::ostream& output, const std::string& extension, const Skeleton* skeleton) throw(Utils::ConversionError);
 
 int main(int argc, char** argv)
 {
@@ -28,21 +28,27 @@ int main(int argc, char** argv)
 				throw std::runtime_error("Could not open skeleton file " + skeletonArg.getValue());
 			skeleton = std::make_unique<Skeleton>(skeletonFile);
 		}
-
+		
 		for (size_t i = 0; i < fileArgs.getValue().size(); i++) {
 			std::string inputName = fileArgs.getValue()[i];
-			std::ifstream inputFile{ inputName, std::ifstream::in | std::ifstream::binary };
-			if (!inputFile.good())
-				throw std::runtime_error("Could not open file " + inputName);
-
 			bool outputSpecified = i < outputArgs.getValue().size();
 			std::string outputName = outputSpecified ? outputArgs.getValue()[i] : defaultOutputFile(inputName);
-			std::ofstream outputFile{ outputName };
-			
-			if(!outputFile.good())
-				throw std::runtime_error("Can not write to output");
-			convertFile(inputFile, outputFile, getExtension(inputName), skeleton.get());
-			std::cout << "Converted " << inputName << " to " << outputName << std::endl;
+
+			try {
+				std::ifstream inputFile{ inputName, std::ifstream::in | std::ifstream::binary };
+				if (!inputFile.good())
+					throw Utils::ConversionError("Could not open input");
+
+				std::ofstream outputFile{ outputName };
+				if(!outputFile.good())
+					throw Utils::ConversionError("Can not write to output file " + outputName);
+
+				convertFile(inputFile, outputFile, getExtension(inputName), skeleton.get());
+				std::cout << "Converted " << inputName << " to " << outputName << std::endl;
+			}
+			catch (Utils::ConversionError& e) {
+				std::cerr << "Error at file " << inputName << ": " << e.what() << std::endl;
+			}
 		}
 	}
 	catch (TCLAP::ArgException& e) {

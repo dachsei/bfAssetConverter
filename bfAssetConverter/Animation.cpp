@@ -1,7 +1,6 @@
 #include "Animation.h"
 #include <sstream>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Utils.h"
 
 using namespace Utils;
 
