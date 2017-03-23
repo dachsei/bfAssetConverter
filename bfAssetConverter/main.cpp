@@ -1,43 +1,99 @@
 #include <iostream>
 #include <fstream>
+#include <memory>
 #include <rapidxml/rapidxml_print.hpp>
+#include <tclap/CmdLine.h>
 #include "Utils.h"
-#include "Skeleton.h"
 #include "Animation.h"
+#include "SkinnedMesh.h"
+
+std::string getExtension(const std::string& filename);
+std::string defaultOutputFile(const std::string& filename);
+void convertFile(std::istream& input, std::ostream& output, const std::string& extension, const Skeleton* skeleton);
 
 int main(int argc, char** argv)
 {
-	if (argc < 2) {
-		std::cout << "The .ske file must be specified as parameter" << std::endl;
-		return -1;
-	}
+	try {
+		TCLAP::CmdLine cmd{ "Converts Battlefield assets to common formats", ' ', "1.0" };
+		TCLAP::ValueArg<std::string> skeletonArg{ "s", "skeleton", "Skeleton file (.ske)", false, "", "filename", cmd };
+		TCLAP::UnlabeledMultiArg<std::string> fileArgs{ "filenames", "Files to convert", true, "filename", cmd };
+		TCLAP::MultiArg<std::string> outputArgs{ "o", "output", "Output files (same order as input files)", false, "filename", cmd };
+		
+		cmd.parse(argc, argv);
 
-	std::ifstream skeFile { argv[1], std::ifstream::in | std::ifstream::binary };
-	if (!skeFile.good()) {
-		std::cout << "Could not open skeleton file " << argv[1] << std::endl;
-		return -1;
-	}
-
-	Skeleton skeleton{ skeFile };
-	rapidxml::xml_document<> doc;
-	rapidxml::xml_node<>* root = Utils::createColladaFramework(doc);
-	skeleton.writeToCollada(doc, root);
-
-	if (argc >= 3) {
-		std::ifstream animationFile{ argv[2], std::ifstream::in | std::ifstream::binary };
-		if (!animationFile.good()) {
-			std::cout << "Could not open animation file " << argv[2] << std::endl;
-			return -1;
+		std::unique_ptr<Skeleton> skeleton;
+		if (skeletonArg.isSet()) {
+			std::ifstream skeletonFile{ skeletonArg.getValue(), std::ifstream::in | std::ifstream::binary };
+			if(!skeletonFile.good())
+				throw std::runtime_error("Could not open skeleton file " + skeletonArg.getValue());
+			skeleton = std::make_unique<Skeleton>(skeletonFile);
 		}
 
-		Animation animation{ animationFile, skeleton };
-		animation.writeToCollada(doc, root);
+		for (size_t i = 0; i < fileArgs.getValue().size(); i++) {
+			std::string inputName = fileArgs.getValue()[i];
+			std::ifstream inputFile{ inputName, std::ifstream::in | std::ifstream::binary };
+			if (!inputFile.good())
+				throw std::runtime_error("Could not open file " + inputName);
+
+			bool outputSpecified = i < outputArgs.getValue().size();
+			std::string outputName = outputSpecified ? outputArgs.getValue()[i] : defaultOutputFile(inputName);
+			std::ofstream outputFile{ outputName };
+			
+			if(!outputFile.good())
+				throw std::runtime_error("Can not write to output");
+			convertFile(inputFile, outputFile, getExtension(inputName), skeleton.get());
+			std::cout << "Converted " << inputName << " to " << outputName << std::endl;
+		}
+	}
+	catch (TCLAP::ArgException& e) {
+		std::cerr << "error: " << e.error() << " at arg " << e.argId() << std::endl;
+		return -1;
+	}
+	catch (std::runtime_error& e) {
+		std::cerr << e.what() << std::endl;
+		return -1;
 	}
 
-	std::ofstream output{ "C:/Users/phili/Desktop/asdf.dae" };
-	output << doc;
-
-	std::cin.ignore();
-
 	return 0;
+}
+
+std::string getExtension(const std::string& filename)
+{
+	size_t pos = filename.find_last_of('.');
+	if (pos == std::string::npos)
+		return "";
+	return filename.substr(pos + 1);
+}
+
+std::string defaultOutputFile(const std::string& filename)
+{
+	size_t pos = filename.find_last_of('.');
+	if (pos == std::string::npos)
+		pos = filename.length();
+	return filename.substr(0, pos) + ".dae";
+}
+
+void convertFile(std::istream& input, std::ostream& output, const std::string& extension, const Skeleton* skeleton) throw(Utils::ConversionError)
+{
+	rapidxml::xml_document<> doc;
+	rapidxml::xml_node<>* root = Utils::createColladaFramework(doc);
+
+	if(extension.compare("baf") == 0) {
+		if (!skeleton)
+			throw Utils::ConversionError("Animations require a skeleton file");
+		Animation anim{ input, *skeleton };
+		skeleton->writeToCollada(doc, root);
+		anim.writeToCollada(doc, root);
+	}
+	else if (extension.compare("skinnedmesh") == 0) {
+		if (!skeleton)
+			throw Utils::ConversionError("Skinnedmeshes require a skeleton file");
+		SkinnedMesh mesh{ input, *skeleton };
+		skeleton->writeToCollada(doc, root);
+		mesh.writeToCollada(doc, root);
+	}
+	else {
+		throw Utils::ConversionError("Unsupported filetype " + extension);
+	}
+	output << doc;
 }

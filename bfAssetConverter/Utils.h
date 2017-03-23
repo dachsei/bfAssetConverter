@@ -6,6 +6,12 @@
 #include <rapidxml/rapidxml.hpp>
 
 namespace Utils {
+	class ConversionError :public std::runtime_error {
+	public:
+		ConversionError(const std::string& msg)
+			:std::runtime_error(msg) {}
+	};
+
 	template<typename T> void readBinary(std::istream& stream, T* result)
 	{
 		stream.read(reinterpret_cast<char*>(result), sizeof(T));
