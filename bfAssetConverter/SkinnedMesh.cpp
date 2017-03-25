@@ -67,13 +67,13 @@ void SkinnedMesh::writeToCollada(xml_document<>& doc, xml_node<>* root) const
 	size_t objectId = 0;
 	for (const Geometry& geom : geometrys) {
 		for (const Lod& lod : geom.lods) {
-			for (size_t iMaterial = 0; iMaterial < lod.materials.size(); iMaterial++) {
+			for (size_t iMaterial = 0; iMaterial < lod.materials.size(); ++iMaterial) {
 				const Material& material = lod.materials[iMaterial];
 				std::string objectName = "Object_" + std::to_string(objectId);
 				char* meshId = writeGeometry(doc, libraryGeometries, objectName, material);
 				char* skinId = writeSkinController(doc, libraryControllers, objectName, material, lod.rigs[iMaterial], meshId);
 				writeSceneObject(doc, visualScene, objectName, skinId);
-				objectId++;
+				++objectId;
 			}
 		}
 	}
@@ -262,7 +262,7 @@ void SkinnedMesh::writeSceneObject(rapidxml::xml_document<>& doc, rapidxml::xml_
 char* SkinnedMesh::writeValueNtimes(rapidxml::xml_document<>& doc, size_t count, char* value) const
 {
 	std::stringstream ss;
-	for (size_t i = 0; i < count; i++) {
+	for (size_t i = 0; i < count; ++i) {
 		ss << value << " ";
 	}
 	std::string result = ss.str();
@@ -274,8 +274,8 @@ std::pair<char*, size_t> SkinnedMesh::computeIndices(rapidxml::xml_document<>& d
 {
 	std::stringstream ss;
 	size_t polycount = 0;
-	for (size_t i = 0; i < material.indexCount; i++) {
-		for (size_t input = 0; input < inputCount; input++) {
+	for (size_t i = 0; i < material.indexCount; ++i) {
+		for (size_t input = 0; input < inputCount; ++input) {
 			ss << indices[material.indexOffset + i] << " ";
 		}
 	}
@@ -333,11 +333,11 @@ std::pair<char*, size_t> SkinnedMesh::writeVertexData(rapidxml::xml_document<>& 
 
 	std::stringstream ss;
 	size_t count = 0;
-	for (size_t i = 0; i < material.vertexCount; i++) {
-		for (size_t elem = 0; elem < elementCount; elem++) {
+	for (size_t i = 0; i < material.vertexCount; ++i) {
+		for (size_t elem = 0; elem < elementCount; ++elem) {
 			ss << vertices[(material.vertexOffset + i)*vertexstride / vertexformat + offset + elem] << " ";
 		}
-		count++;
+		++count;
 	}
 	std::string result = ss.str();
 	result.pop_back();
@@ -360,21 +360,21 @@ size_t SkinnedMesh::computeVertexWeights(const Material& material, std::vector<f
 
 	std::map<float, size_t> weightIndexMap;
 	size_t vertexCount = 0;
-	for (size_t i = 0; i < material.vertexCount; i++) {
+	for (size_t i = 0; i < material.vertexCount; ++i) {
 		size_t vertexBase = (material.vertexOffset + i)*vertexstride / vertexformat;
 		std::vector<float> weights(2);
 		weights[0] = 1 - vertices[vertexBase + weightOffset];
 		weights[1] = 1 - weights[0];
 		const glm::u8vec4 poseIndices = reinterpret_cast<const glm::u8vec4&>(vertices[vertexBase + indexOffset]);
 
-		for (size_t w = 0; w < weights.size(); w++) {
+		for (size_t w = 0; w < weights.size(); ++w) {
 			indexData.push_back(poseIndices[w]);
 			auto ins = weightIndexMap.insert(std::make_pair(weights[w], weightData.size()));
 			if (ins.second)
 				weightData.push_back(weights[w]);
 			indexData.push_back(ins.first->second);
 		}
-		vertexCount++;
+		++vertexCount;
 	}
 
 	return vertexCount;

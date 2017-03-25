@@ -4,7 +4,7 @@
 class Skeleton
 {
 public:
-	Skeleton(std::istream& stream) throw(Utils::ConversionError);
+	Skeleton(std::istream& stream);
 	~Skeleton() = default;
 
 	void writeToCollada(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* root) const;

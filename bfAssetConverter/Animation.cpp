@@ -17,7 +17,7 @@ Animation::Animation(std::istream& stream, const Skeleton& skeleton)
 	readBinary(stream, &precision);
 
 	boneAnimations.reserve(boneCount);
-	for (int i = 0; i < boneCount; i++) {
+	for (int i = 0; i < boneCount; ++i) {
 		boneAnimations.push_back(readBoneData(stream, boneIds[i]));
 	}
 }
@@ -80,7 +80,7 @@ Animation::BoneData Animation::readBoneData(std::istream& stream, uint16_t boneI
 	result.rotationStream.resize(frameCount);
 	result.positionStream.resize(frameCount);
 
-	for (int component = 0; component < 7; component++) {	//7 datastreams
+	for (int component = 0; component < 7; ++component) {	//7 datastreams
 		size_t curFrame = 0;
 
 		uint16_t dataLeft;
@@ -99,7 +99,7 @@ Animation::BoneData Animation::readBoneData(std::istream& stream, uint16_t boneI
 				readBinary(stream, &value);		//outside loop
 			}
 
-			for (int frame = 0; frame < numFrames; frame++) {
+			for (int frame = 0; frame < numFrames; ++frame) {
 				if (!rle) {
 					readBinary(stream, &value);		//inside loop
 				}
@@ -114,7 +114,7 @@ Animation::BoneData Animation::readBoneData(std::istream& stream, uint16_t boneI
 					case 5: result.positionStream[curFrame].y = fixedToFloat(value, precision); break;
 					case 6: result.positionStream[curFrame].z = fixedToFloat(value, precision); break;
 				}
-				curFrame++;
+				++curFrame;
 			}
 
 			dataLeft -= nextHeader;
@@ -130,7 +130,7 @@ Animation::BoneData Animation::readBoneData(std::istream& stream, uint16_t boneI
 char* Animation::allocateAndComputeMatrixStream(rapidxml::xml_document<>& doc, const std::vector<glm::vec3>& positionStream, const std::vector<glm::quat>& rotationStream) const
 {
 	std::stringstream ss;
-	for (size_t i = 0; i < positionStream.size(); i++) {
+	for (size_t i = 0; i < positionStream.size(); ++i) {
 		glm::mat4 localMat = glm::translate(glm::mat4(), positionStream[i]) * glm::mat4_cast(rotationStream[i]);
 		writeMatrixToStream(ss, localMat);
 	}
@@ -146,7 +146,7 @@ char* Animation::allocateAndComputeKeyframes(rapidxml::xml_document<>& doc) cons
 	constexpr float dt = 1.0f/20.0f;
 	float time = 0.0f;
 
-	for (size_t i = 0; i < frameCount; i++) {
+	for (size_t i = 0; i < frameCount; ++i) {
 		ss << time << " ";
 		time += dt;
 	}
@@ -160,7 +160,7 @@ char* Animation::allocateAndFillInterpolation(rapidxml::xml_document<>& doc) con
 {
 	std::stringstream ss;
 
-	for (size_t i = 0; i < frameCount; i++) {
+	for (size_t i = 0; i < frameCount; ++i) {
 		ss << "LINEAR ";
 	}
 

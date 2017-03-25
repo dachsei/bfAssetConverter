@@ -30,8 +30,8 @@ float Utils::fixedToFloat(int16_t value, uint8_t precision)
 
 void Utils::writeMatrixToStream(std::ostream& stream, const glm::mat4& mat)
 {
-	for (int k = 0; k < 4; k++) {
-		for (int l = 0; l < 4; l++) {
+	for (int k = 0; k < 4; ++k) {
+		for (int l = 0; l < 4; ++l) {
 			stream << mat[l][k] << " ";	//column major -> row major
 		}
 	}

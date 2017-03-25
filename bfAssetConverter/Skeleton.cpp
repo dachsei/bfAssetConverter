@@ -4,7 +4,7 @@
 using namespace Utils;
 using namespace rapidxml;
 
-Skeleton::Skeleton(std::istream& stream) throw(Utils::ConversionError)
+Skeleton::Skeleton(std::istream& stream)
 {
 	readBinary(stream, &version);
 	if (version != 2)
@@ -24,7 +24,7 @@ void Skeleton::writeToCollada(xml_document<>& doc, xml_node<>* root) const
 
 	xml_node<>* armature = createArmatureNode(doc, root);
 
-	for (size_t i = 0; i < bones.size(); i++) {	//Parents are always before children
+	for (size_t i = 0; i < bones.size(); ++i) {	//Parents are always before children
 		xml_node<>* node = doc.allocate_node(node_element, "node");
 		const Bone& bone = bones[i];
 		parents[i] = node;

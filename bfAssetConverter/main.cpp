@@ -9,7 +9,7 @@
 
 std::string getExtension(const std::string& filename);
 std::string defaultOutputFile(const std::string& filename);
-void convertFile(std::istream& input, std::ostream& output, const std::string& extension, const Skeleton* skeleton) throw(Utils::ConversionError);
+void convertFile(std::istream& input, std::ostream& output, const std::string& extension, const Skeleton* skeleton);
 
 int main(int argc, char** argv)
 {
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 			skeleton = std::make_unique<Skeleton>(skeletonFile);
 		}
 		
-		for (size_t i = 0; i < fileArgs.getValue().size(); i++) {
+		for (size_t i = 0; i < fileArgs.getValue().size(); ++i) {
 			std::string inputName = fileArgs.getValue()[i];
 			bool outputSpecified = i < outputArgs.getValue().size();
 			std::string outputName = outputSpecified ? outputArgs.getValue()[i] : defaultOutputFile(inputName);
@@ -79,27 +79,27 @@ std::string defaultOutputFile(const std::string& filename)
 	return filename.substr(0, pos) + ".dae";
 }
 
-void convertFile(std::istream& input, std::ostream& output, const std::string& extension, const Skeleton* skeleton) throw(Utils::ConversionError)
+void convertFile(std::istream& input, std::ostream& output, const std::string& extension, const Skeleton* skeleton)
 {
-	rapidxml::xml_document<> doc;
-	rapidxml::xml_node<>* root = Utils::createColladaFramework(doc);
+	auto doc = std::make_unique<rapidxml::xml_document<>>();
+	rapidxml::xml_node<>* root = Utils::createColladaFramework(*doc);
 
 	if(extension.compare("baf") == 0) {
 		if (!skeleton)
 			throw Utils::ConversionError("Animations require a skeleton file");
 		Animation anim{ input, *skeleton };
-		skeleton->writeToCollada(doc, root);
-		anim.writeToCollada(doc, root);
+		skeleton->writeToCollada(*doc, root);
+		anim.writeToCollada(*doc, root);
 	}
 	else if (extension.compare("skinnedmesh") == 0) {
 		if (!skeleton)
 			throw Utils::ConversionError("Skinnedmeshes require a skeleton file");
 		SkinnedMesh mesh{ input, *skeleton };
-		skeleton->writeToCollada(doc, root);
-		mesh.writeToCollada(doc, root);
+		skeleton->writeToCollada(*doc, root);
+		mesh.writeToCollada(*doc, root);
 	}
 	else {
 		throw Utils::ConversionError("Unsupported filetype " + extension);
 	}
-	output << doc;
+	output << *doc;
 }
