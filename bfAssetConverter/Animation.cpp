@@ -143,7 +143,7 @@ char* Animation::allocateAndComputeMatrixStream(rapidxml::xml_document<>& doc, c
 char* Animation::allocateAndComputeKeyframes(rapidxml::xml_document<>& doc) const
 {
 	std::stringstream ss;
-	constexpr float dt = 1.0f/20.0f;
+	constexpr float dt = 1.0f/30.0f;
 	float time = 0.0f;
 
 	for (size_t i = 0; i < frameCount; ++i) {

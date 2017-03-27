@@ -363,9 +363,16 @@ size_t SkinnedMesh::computeVertexWeights(const Material& material, std::vector<f
 	for (size_t i = 0; i < material.vertexCount; ++i) {
 		size_t vertexBase = (material.vertexOffset + i)*vertexstride / vertexformat;
 		std::vector<float> weights(2);
-		weights[0] = 1 - vertices[vertexBase + weightOffset];
+		weights[0] = vertices[vertexBase + weightOffset];
 		weights[1] = 1 - weights[0];
-		const glm::u8vec4 poseIndices = reinterpret_cast<const glm::u8vec4&>(vertices[vertexBase + indexOffset]);
+		glm::u8vec4 poseIndices = reinterpret_cast<const glm::u8vec4&>(vertices[vertexBase + indexOffset]);
+
+		if (poseIndices.x == poseIndices.y) {	//Don't allow same Index twice -> change the 0 influence to any other
+			if (weights[0] == 1)
+				poseIndices.y = !poseIndices.y;	//1 if 0, 0 else
+			else
+				poseIndices.x = !poseIndices.x;
+		}
 
 		for (size_t w = 0; w < weights.size(); ++w) {
 			indexData.push_back(poseIndices[w]);
