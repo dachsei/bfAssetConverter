@@ -16,15 +16,15 @@ Skeleton (.ske) {
 Animation (.baf) {
 	uint32 version
 	uint16 bonenum
-	uint16 boneids[bonenum]
-	uint32 framenum
-	uint8 precision		//clear what this means
+	uint16 boneids[bonenum]	//references in skeleton.bones
+	uint32 framenum			//15 fps
+	uint8 precision
 
 	for every bone {
 		uint16 datasize
 		
 		7 streams of 16-bit floating point values
-        * first four are XYZW that store quaternion rotation 0.16 fixed
+        * first four are XYZW that store quaternion rotation 0.16 fixed (inverted)
         * next three are XYZ that store the position (15 - precision).(1 + precision) fixed
         * each stream may be RLE compressed
 		* streams consist of blocks with 8bit header MSB is RLE remaining 7 is frame num
