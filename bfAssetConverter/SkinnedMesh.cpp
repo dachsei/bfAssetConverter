@@ -56,6 +56,8 @@ SkinnedMesh::SkinnedMesh(std::istream& stream, const Skeleton& skeleton)
 			readMaterials(stream, lod);
 		}
 	}
+
+	flipTextureCoords();
 }
 
 void SkinnedMesh::writeToCollada(xml_document<>& doc, xml_node<>* root) const
@@ -125,7 +127,23 @@ void SkinnedMesh::readMaterials(std::istream& stream, Lod& lod) const
 	}
 }
 
-char *SkinnedMesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometries, const std::string& objectName, const Material& material) const
+void SkinnedMesh::flipTextureCoords()
+{
+	size_t offset = -1;
+	for (const VertexAttrib& attrib : vertexAttribs) {
+		if (attrib.usage == VertexAttrib::uv1) {
+			offset = attrib.offset / vertexformat;
+			assert(attrib.vartype == VertexAttrib::float2);
+		}
+	}
+	assert(offset != -1);
+
+	for (size_t i = offset + 1; i < vertices.size(); i += vertexstride / vertexformat) {	//+1 for the y component
+		vertices[i] = 1 - vertices[i];
+	}
+}
+
+char* SkinnedMesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometries, const std::string& objectName, const Material& material) const
 {
 	xml_node<>* geometry = doc.allocate_node(node_element, "geometry");
 	char* meshId = setId(doc, geometry, objectName + "-mesh");
