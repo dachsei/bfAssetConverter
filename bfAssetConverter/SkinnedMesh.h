@@ -51,6 +51,7 @@ private:
 
 	void readRigs(std::istream& stream, Lod& lod) const;
 	void readMaterials(std::istream& stream, Lod& lod) const;
+	void flipTextureCoords();
 
 	char* writeGeometry(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryGeometries, const std::string& objectName, const Material& material) const;
 	char* writeSkinController(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryControllers, const std::string& objectName, const Material& material, const Rig& rig, const char* meshId) const;
