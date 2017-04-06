@@ -1,7 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <memory>
 #include <tclap/CmdLine.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
 
 struct ConFile {
 	std::string textureFile;
@@ -19,6 +24,8 @@ struct ConFile {
 };
 ConFile parseConFile(std::istream& stream, const std::string& overrideFolder, const std::string& outputFolder);
 void processFile(const ConFile& file);
+void targetSize(ConFile::ItemType type, int& width, int& height);
+void copyImageRegion(const unsigned char* src, unsigned char* dst, int srcWidth, int srcHeight, int dstWidth, int dstHeight, int xOffset, int yOffset, int channels);
 
 int main(int argc, char** argv)
 {
@@ -73,6 +80,56 @@ ConFile parseConFile(std::istream& stream, const std::string& overrideFolder, co
 
 void processFile(const ConFile& file)
 {
+	int srcWidth, srcHeight, dstWidth, dstHeight, channels;
+	targetSize(file.itemType, dstWidth, dstHeight);
+
+	std::unique_ptr<unsigned char, void(*)(void*)> inputData(
+		stbi_load(file.textureFile.c_str(), &srcWidth, &srcHeight, &channels, 0),
+		&stbi_image_free);
+	std::unique_ptr<unsigned char[]> outputData(new unsigned char[channels*dstWidth*dstHeight]);
+
+	if (srcWidth + file.xOffset > dstWidth || srcHeight + file.yOffset > dstHeight)
+		throw std::runtime_error("Image writing exceeds Bounds");
+
+	for (int y = 0; y < srcHeight; ++y) {
+		memcpy(
+			outputData.get() + (file.xOffset + (y+file.yOffset) *dstWidth) * channels,
+			inputData.get() + y*srcWidth * channels,
+			srcWidth * channels);
+	}
+
+	stbi_write_tga(file.outputFile.c_str(), dstWidth, dstHeight, channels, outputData.get());
+}
+
+void targetSize(ConFile::ItemType type, int& width, int& height)
+{
+	switch (type) {
+	case ConFile::Body:			width = 1024;	height = 512;	break;
+	case ConFile::Hands:		width = 1024;	height = 512;	break;
+	case ConFile::Legs:			width = 369;	height = 296;	break;
+	case ConFile::Feet:			width = 192;	height = 124;	break;
+	case ConFile::Head:			width = 463;	height = 296;	break;
+	case ConFile::HeadHair:		width = 463;	height = 296;	break;
+	case ConFile::Hat:			width = 317;	height = 216;	break;
+	case ConFile::Hair:			width = 317;	height = 216;	break;
+	case ConFile::Neck:			width = 87;		height = 216;	break;
+	case ConFile::FaceObj:		width = 192;	height = 86;	break;
+	case ConFile::FaceHair:		width = 192;	height = 86;	break;
+	case ConFile::WaistLeft:	width = 155;	height = 216;	break;
+	case ConFile::WaistRight:	width = 155;	height = 216;	break;
+	case ConFile::WaistBack:	width = 155;	height = 216;	break;
+	case ConFile::ChestItem:	width = 155;	height = 216;	break;
+	}
+}
+
+void copyImageRegion(const unsigned char* src, unsigned char* dst, int srcWidth, int srcHeight, int dstWidth, int dstHeight, int xOffset, int yOffset, int channels)
+{
+	if (srcWidth + xOffset > dstWidth || srcHeight + yOffset > dstHeight)
+		throw std::runtime_error("Image writing exceeds Bounds");
+
+	for (int y = 0; y < srcHeight; ++y) {
+		memcpy(dst + xOffset + (y+yOffset)*dstWidth, src + y*srcWidth, channels*srcWidth);
+	}
 }
 
 void ConFile::readItemType(std::istream& stream)
@@ -129,5 +186,4 @@ void ConFile::readOffset(std::istream& stream)
 	if (stream.get() != '/')
 		throw std::runtime_error("Cannot parse offset");
 	stream >> yOffset;
-	stream.ignore(1);	//Eat newline
 }
