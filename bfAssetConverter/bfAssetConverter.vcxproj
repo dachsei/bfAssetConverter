@@ -152,6 +152,7 @@
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="BundledMesh.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Skeleton.cpp" />
     <ClCompile Include="SkinnedMesh.cpp" />
     <ClCompile Include="Utils.cpp" />
@@ -159,6 +160,7 @@
   <ItemGroup>
     <ClInclude Include="Animation.h" />
     <ClInclude Include="BundledMesh.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="Skeleton.h" />
     <ClInclude Include="SkinnedMesh.h" />
     <ClInclude Include="Utils.h" />
