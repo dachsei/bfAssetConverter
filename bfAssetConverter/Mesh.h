@@ -33,6 +33,7 @@ protected:
 		glm::vec3 max;
 		glm::vec3 pivot;
 		std::vector<Rig> rigs;
+		std::vector<glm::mat4> nodes;
 		std::vector<Material> materials;
 	};
 	struct Geometry {
@@ -43,11 +44,12 @@ protected:
 		uint16_t offset;
 		enum Vartype : uint16_t { float1 = 0, float2 = 1, float3 = 2, d3dcolor = 4 };
 		Vartype vartype;
-		enum Usage : uint16_t { position = 0, blendWeight = 1, blendIndices = 2, normal = 3, uv1 = 5, tangent = 6 };
+		enum Usage : uint16_t { position = 0, blendWeight = 1, blendIndices = 2, normal = 3, uv1 = 5, tangent = 6,
+			uv2 = 261, uv3 = 517, uv4 = 773, uv5 = 1029 };
 		Usage usage;
 	};
 
-	void readMaterial(std::istream& stream, Material& material) const;
+	virtual void readMaterial(std::istream& stream, Material& material) const;
 	void flipTextureCoords();
 
 	char* writeGeometry(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryGeometries, const std::string& objectName,

@@ -1,13 +1,16 @@
 #pragma once
 #include "Mesh.h"
 
-class BundledMesh : public Mesh
+class StaticMesh : public Mesh
 {
 public:
-	BundledMesh(std::istream& stream);
-	~BundledMesh() = default;
+	StaticMesh(std::istream& stream);
+	~StaticMesh() = default;
 
 	void writeToCollada(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* root) const;
+
 protected:
+	void readLodNodeTable(std::istream& stream, Lod& lod);
+	void readMaterial(std::istream& stream, Material& material) const override;
 	void writeSceneObject(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* visualScene, const std::string& objectName, const char* geomId) const;
 };

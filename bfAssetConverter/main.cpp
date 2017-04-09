@@ -7,6 +7,7 @@
 #include "Animation.h"
 #include "SkinnedMesh.h"
 #include "BundledMesh.h"
+#include "StaticMesh.h"
 
 std::string getExtension(const std::string& filename);
 std::string defaultOutputFile(const std::string& filename);
@@ -101,6 +102,10 @@ void convertFile(std::istream& input, std::ostream& output, const std::string& e
 	}
 	else if (extension.compare("bundledmesh") == 0) {
 		BundledMesh mesh{ input };
+		mesh.writeToCollada(*doc, root);
+	}
+	else if (extension.compare("staticmesh") == 0) {
+		StaticMesh mesh{ input };
 		mesh.writeToCollada(*doc, root);
 	}
 	else {
