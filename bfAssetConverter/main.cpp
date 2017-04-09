@@ -101,7 +101,7 @@ void convertFile(std::istream& input, std::ostream& output, const std::string& e
 	}
 	else if (extension.compare("bundledmesh") == 0) {
 		BundledMesh mesh{ input };
-		//mesh.writeToCollada(*doc, root);
+		mesh.writeToCollada(*doc, root);
 	}
 	else {
 		throw Utils::ConversionError("Unsupported filetype " + extension);

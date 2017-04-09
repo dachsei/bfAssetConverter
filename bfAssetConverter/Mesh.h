@@ -50,6 +50,12 @@ protected:
 	void readMaterial(std::istream& stream, Material& material) const;
 	void flipTextureCoords();
 
+	char* writeGeometry(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryGeometries, const std::string& objectName,
+		const Material& material) const;
+	std::pair<char*, size_t> writeVertexData(rapidxml::xml_document<>& doc, const Material& material, VertexAttrib::Usage usage) const;
+	char* writeValueNtimes(rapidxml::xml_document<>& doc, size_t count, char* value) const;
+	std::pair<char*, size_t> computeIndices(rapidxml::xml_document<>& doc, const Material& material, size_t inputCount) const;
+
 	uint32_t version;
 	std::vector<Geometry> geometrys;
 	std::vector<VertexAttrib> vertexAttribs;
