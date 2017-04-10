@@ -65,22 +65,36 @@ void Mesh::readMaterial(std::istream& stream, Material& material) const
 
 void Mesh::flipTextureCoords()
 {
-	size_t offset = -1;
 	for (const VertexAttrib& attrib : vertexAttribs) {
-		if (attrib.usage == VertexAttrib::uv1) {
-			offset = attrib.offset / vertexformat;
+		switch (attrib.usage) {
+		case VertexAttrib::uv1:
+		case VertexAttrib::uv2:
+		case VertexAttrib::uv3:
+		case VertexAttrib::uv4:
+		case VertexAttrib::uv5:
 			assert(attrib.vartype == VertexAttrib::float2);
+			size_t offset = attrib.offset / vertexformat;
+			for (size_t i = offset + 1; i < vertices.size(); i += vertexstride / vertexformat) {	//+1 for the y component
+				vertices[i] = 1 - vertices[i];
+			}
+			break;
 		}
-	}
-	assert(offset != -1);
-
-	for (size_t i = offset + 1; i < vertices.size(); i += vertexstride / vertexformat) {	//+1 for the y component
-		vertices[i] = 1 - vertices[i];
 	}
 }
 
 char* Mesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometries, const std::string& objectName, const Material& material) const
 {
+	size_t uvChannels = 0;
+	for (const VertexAttrib& it : vertexAttribs) {
+		switch (it.usage) {
+		case VertexAttrib::uv1: uvChannels = max(uvChannels, 1u); break;
+		case VertexAttrib::uv2: uvChannels = max(uvChannels, 2u); break;
+		case VertexAttrib::uv3: uvChannels = max(uvChannels, 3u); break;
+		case VertexAttrib::uv4: uvChannels = max(uvChannels, 4u); break;
+		case VertexAttrib::uv5: uvChannels = max(uvChannels, 5u); break;
+		}
+	}
+
 	xml_node<>* geometry = doc.allocate_node(node_element, "geometry");
 	char* meshId = setId(doc, geometry, objectName + "-mesh");
 	{
@@ -90,8 +104,31 @@ char* Mesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometries, co
 			char* positionsId = writeSourceNode(doc, mesh, objectName + "-mesh-positions", positionData.first, positionData.second, Format::xyz);
 			std::pair<char*, size_t> normalData = writeVertexData(doc, material, VertexAttrib::normal);
 			char* normalsId = writeSourceNode(doc, mesh, objectName + "-mesh-normals", normalData.first, normalData.second, Format::xyz);
-			std::pair<char*, size_t> texData = writeVertexData(doc, material, VertexAttrib::uv1);
-			char* texId = writeSourceNode(doc, mesh, objectName + "-mesh-map", texData.first, texData.second, Format::st);
+			char* texId1;
+			if (uvChannels >= 1) {
+				std::pair<char*, size_t> texData = writeVertexData(doc, material, VertexAttrib::uv1);
+				texId1 = writeSourceNode(doc, mesh, objectName + "-mesh-map-1", texData.first, texData.second, Format::st);
+			}
+			char* texId2;
+			if (uvChannels >= 2) {
+				std::pair<char*, size_t> texData = writeVertexData(doc, material, VertexAttrib::uv2);
+				texId2 = writeSourceNode(doc, mesh, objectName + "-mesh-map-2", texData.first, texData.second, Format::st);
+			}
+			char* texId3;
+			if (uvChannels >= 3) {
+				std::pair<char*, size_t> texData = writeVertexData(doc, material, VertexAttrib::uv3);
+				texId3 = writeSourceNode(doc, mesh, objectName + "-mesh-map-3", texData.first, texData.second, Format::st);
+			}
+			char* texId4;
+			if (uvChannels >= 4) {
+				std::pair<char*, size_t> texData = writeVertexData(doc, material, VertexAttrib::uv4);
+				texId4 = writeSourceNode(doc, mesh, objectName + "-mesh-map-4", texData.first, texData.second, Format::st);
+			}
+			char* texId5;
+			if (uvChannels >= 5) {
+				std::pair<char*, size_t> texData = writeVertexData(doc, material, VertexAttrib::uv5);
+				texId5 = writeSourceNode(doc, mesh, objectName + "-mesh-map5", texData.first, texData.second, Format::st);
+			}
 
 			xml_node<>* vertices = doc.allocate_node(node_element, "vertices");
 			char* verticesId = setId(doc, vertices, objectName + "-mesh-vertices");
@@ -120,11 +157,46 @@ char* Mesh::writeGeometry(xml_document<>& doc, xml_node<>* libraryGeometries, co
 				input->append_attribute(doc.allocate_attribute("source", normalsId));
 				input->append_attribute(doc.allocate_attribute("offset", "1"));
 				polylist->append_node(input);
-				input = doc.allocate_node(node_element, "input");
-				input->append_attribute(doc.allocate_attribute("semantic", "TEXCOORD"));
-				input->append_attribute(doc.allocate_attribute("source", texId));
-				input->append_attribute(doc.allocate_attribute("offset", "2"));
-				polylist->append_node(input);
+				if (uvChannels >= 1) {
+					input = doc.allocate_node(node_element, "input");
+					input->append_attribute(doc.allocate_attribute("semantic", "TEXCOORD"));
+					input->append_attribute(doc.allocate_attribute("source", texId1));
+					input->append_attribute(doc.allocate_attribute("offset", "2"));
+					input->append_attribute(doc.allocate_attribute("set", "0"));
+					polylist->append_node(input);
+				}
+				if (uvChannels >= 2) {
+					input = doc.allocate_node(node_element, "input");
+					input->append_attribute(doc.allocate_attribute("semantic", "TEXCOORD"));
+					input->append_attribute(doc.allocate_attribute("source", texId2));
+					input->append_attribute(doc.allocate_attribute("offset", "2"));
+					input->append_attribute(doc.allocate_attribute("set", "1"));
+					polylist->append_node(input);
+				}
+				if (uvChannels >= 3) {
+					input = doc.allocate_node(node_element, "input");
+					input->append_attribute(doc.allocate_attribute("semantic", "TEXCOORD"));
+					input->append_attribute(doc.allocate_attribute("source", texId3));
+					input->append_attribute(doc.allocate_attribute("offset", "2"));
+					input->append_attribute(doc.allocate_attribute("set", "2"));
+					polylist->append_node(input);
+				}
+				if (uvChannels >= 4) {
+					input = doc.allocate_node(node_element, "input");
+					input->append_attribute(doc.allocate_attribute("semantic", "TEXCOORD"));
+					input->append_attribute(doc.allocate_attribute("source", texId4));
+					input->append_attribute(doc.allocate_attribute("offset", "2"));
+					input->append_attribute(doc.allocate_attribute("set", "3"));
+					polylist->append_node(input);
+				}
+				if (uvChannels >= 5) {
+					input = doc.allocate_node(node_element, "input");
+					input->append_attribute(doc.allocate_attribute("semantic", "TEXCOORD"));
+					input->append_attribute(doc.allocate_attribute("source", texId5));
+					input->append_attribute(doc.allocate_attribute("offset", "2"));
+					input->append_attribute(doc.allocate_attribute("set", "4"));
+					polylist->append_node(input);
+				}
 
 				polylist->append_node(doc.allocate_node(node_element, "vcount", writeValueNtimes(doc, polyCount, "3")));
 				polylist->append_node(doc.allocate_node(node_element, "p", indexData));

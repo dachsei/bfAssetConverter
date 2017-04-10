@@ -26,6 +26,9 @@ namespace Utils {
 	std::string readStringFormat2(std::istream& stream);
 
 	float fixedToFloat(int16_t value, uint8_t precision = 15);
+	template<typename T> T max(T a, T b) {
+		return a > b ? a : b;
+	}
 	void writeMatrixToStream(std::ostream& stream, const glm::mat4& mat);
 	char* matrixToString(rapidxml::xml_document<>& doc, const glm::mat4& mat);
 	char* floatsToString(rapidxml::xml_document<>& doc, const std::vector<float>& data);
