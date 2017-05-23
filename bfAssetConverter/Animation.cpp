@@ -24,6 +24,8 @@ Animation::Animation(std::istream& stream, const Skeleton& skeleton)
 
 void Animation::writeToCollada(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* root) const
 {
+	skeleton.writeToCollada(doc, root);
+
 	char* keyframes = allocateAndComputeKeyframes(doc);
 	char* interpolationValues = allocateAndFillInterpolation(doc);
 

@@ -7,6 +7,8 @@ public:
 	Mesh(std::istream& stream);
 	virtual ~Mesh() = default;
 
+	void writeFiles(const std::string& baseName) const;
+
 protected:
 	struct Material {
 		enum Alphamode : uint32_t { opaque = 0, blend = 1, alphatest = 2 };
@@ -45,13 +47,14 @@ protected:
 		enum Vartype : uint16_t { float1 = 0, float2 = 1, float3 = 2, d3dcolor = 4 };
 		Vartype vartype;
 		enum Usage : uint16_t { position = 0, blendWeight = 1, blendIndices = 2, normal = 3, uv1 = 5, tangent = 6,
-			uv2 = 261, uv3 = 517, uv4 = 773, uv5 = 1029 };
+			uv2 = 0x105, uv3 = 0x205, uv4 = 0x305, uv5 = 0x405 };
 		Usage usage;
 	};
 
 	virtual void readMaterial(std::istream& stream, Material& material) const;
 	void flipTextureCoords();
 
+	virtual void writeToCollada(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* root, const Lod& lod) const = 0;
 	char* writeGeometry(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryGeometries, const std::string& objectName,
 		const Material& material) const;
 	std::pair<char*, size_t> writeVertexData(rapidxml::xml_document<>& doc, const Material& material, VertexAttrib::Usage usage) const;

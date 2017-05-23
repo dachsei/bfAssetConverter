@@ -8,11 +8,10 @@ public:
 	SkinnedMesh(std::istream& stream, const Skeleton& skeleton);
 	~SkinnedMesh() = default;
 
-	void writeToCollada(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* root) const;
-
 protected:
 	void readRigs(std::istream& stream, Lod& lod) const;
 
+	void writeToCollada(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* root, const Lod& lod) const override;
 	char* writeSkinController(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryControllers, const std::string& objectName,
 		const Material& material, const Rig& rig, const char* meshId) const;
 	void writeSceneObject(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* visualScene, const std::string& objectName, const char* skinId) const;

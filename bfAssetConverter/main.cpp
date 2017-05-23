@@ -11,7 +11,7 @@
 
 std::string getExtension(const std::string& filename);
 std::string defaultOutputFile(const std::string& filename);
-void convertFile(std::istream& input, std::ostream& output, const std::string& extension, const Skeleton* skeleton);
+void convertFile(std::istream& input, const std::string& output, const std::string& extension, const Skeleton* skeleton);
 
 int main(int argc, char** argv)
 {
@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 		TCLAP::CmdLine cmd{ "Converts Battlefield assets to common formats", ' ', "1.0" };
 		TCLAP::ValueArg<std::string> skeletonArg{ "s", "skeleton", "Skeleton file (.ske)", false, "", "filename", cmd };
 		TCLAP::UnlabeledMultiArg<std::string> fileArgs{ "filenames", "Files to convert", true, "filename", cmd };
-		TCLAP::MultiArg<std::string> outputArgs{ "o", "output", "Output files (same order as input files)", false, "filename", cmd };
+		TCLAP::MultiArg<std::string> outputArgs{ "o", "output", "Basename of output files (same order as input files)", false, "path/base", cmd };
 		
 		cmd.parse(argc, argv);
 
@@ -41,12 +41,8 @@ int main(int argc, char** argv)
 				if (!inputFile.good())
 					throw Utils::ConversionError("Could not open input");
 
-				std::ofstream outputFile{ outputName };
-				if(!outputFile.good())
-					throw Utils::ConversionError("Can not write to output file " + outputName);
-
-				convertFile(inputFile, outputFile, getExtension(inputName), skeleton.get());
-				std::cout << "Converted " << inputName << " to " << outputName << std::endl;
+				std::cout << "Converting " << inputName << std::endl;
+				convertFile(inputFile, outputName, getExtension(inputName), skeleton.get());
 			}
 			catch (Utils::ConversionError& e) {
 				std::cerr << "Error at file " << inputName << ": " << e.what() << std::endl;
@@ -78,10 +74,10 @@ std::string defaultOutputFile(const std::string& filename)
 	size_t pos = filename.find_last_of('.');
 	if (pos == std::string::npos)
 		pos = filename.length();
-	return filename.substr(0, pos) + ".dae";
+	return filename.substr(0, pos);
 }
 
-void convertFile(std::istream& input, std::ostream& output, const std::string& extension, const Skeleton* skeleton)
+void convertFile(std::istream& input, const std::string& output, const std::string& extension, const Skeleton* skeleton)
 {
 	auto doc = std::make_unique<rapidxml::xml_document<>>();
 	rapidxml::xml_node<>* root = Utils::createColladaFramework(*doc);
@@ -90,26 +86,25 @@ void convertFile(std::istream& input, std::ostream& output, const std::string& e
 		if (!skeleton)
 			throw Utils::ConversionError("Animations require a skeleton file");
 		Animation anim{ input, *skeleton };
-		skeleton->writeToCollada(*doc, root);
 		anim.writeToCollada(*doc, root);
+		std::ofstream outputFile{ output + ".dae" };
+		outputFile << *doc;
 	}
 	else if (extension.compare("skinnedmesh") == 0) {
 		if (!skeleton)
 			throw Utils::ConversionError("Skinnedmeshes require a skeleton file");
 		SkinnedMesh mesh{ input, *skeleton };
-		skeleton->writeToCollada(*doc, root);
-		mesh.writeToCollada(*doc, root);
+		mesh.writeFiles(output);
 	}
 	else if (extension.compare("bundledmesh") == 0) {
 		BundledMesh mesh{ input };
-		mesh.writeToCollada(*doc, root);
+		mesh.writeFiles(output);
 	}
 	else if (extension.compare("staticmesh") == 0) {
 		StaticMesh mesh{ input };
-		mesh.writeToCollada(*doc, root);
+		mesh.writeFiles(output);
 	}
 	else {
 		throw Utils::ConversionError("Unsupported filetype " + extension);
 	}
-	output << *doc;
 }

@@ -30,23 +30,19 @@ StaticMesh::StaticMesh(std::istream& stream)
 	}
 }
 
-void StaticMesh::writeToCollada(xml_document<>& doc, xml_node<>* root) const
+void StaticMesh::writeToCollada(xml_document<>& doc, xml_node<>* root, const Lod& lod) const
 {
 	xml_node<>* libraryGeometries = root->first_node("library_geometries");
 	xml_node<>* libraryControllers = root->first_node("library_controllers");
 	xml_node<>* visualScene = root->first_node("library_visual_scenes")->first_node("visual_scene");
-
+	
 	size_t objectId = 0;
-	for (const Geometry& geom : geometrys) {
-		for (const Lod& lod : geom.lods) {
-			for (size_t iMaterial = 0; iMaterial < lod.materials.size(); ++iMaterial) {
-				const Material& material = lod.materials[iMaterial];
-				std::string objectName = "Object_" + std::to_string(objectId);
-				char* meshId = writeGeometry(doc, libraryGeometries, objectName, material);
-				writeSceneObject(doc, visualScene, objectName, meshId);
-				++objectId;
-			}
-		}
+	for (size_t iMaterial = 0; iMaterial < lod.materials.size(); ++iMaterial) {
+		const Material& material = lod.materials[iMaterial];
+		std::string objectName = "Object_" + std::to_string(objectId);
+		char* meshId = writeGeometry(doc, libraryGeometries, objectName, material);
+		writeSceneObject(doc, visualScene, objectName, meshId);
+		++objectId;
 	}
 }
 

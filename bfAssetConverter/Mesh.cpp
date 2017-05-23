@@ -1,6 +1,10 @@
 #include "Mesh.h"
 #include <sstream>
 #include <tuple>
+#include <memory>
+#include <fstream>
+#include <rapidxml/rapidxml_print.hpp>
+#include <iostream>
 
 using namespace Utils;
 using namespace rapidxml;
@@ -76,6 +80,33 @@ void Mesh::flipTextureCoords()
 
 	for (size_t i = offset + 1; i < vertices.size(); i += vertexstride / vertexformat) {	//+1 for the y component
 		vertices[i] = 1 - vertices[i];
+	}
+}
+
+void Mesh::writeFiles(const std::string& baseName) const
+{
+	for (int geom = 0; geom < geometrys.size(); ++geom) {
+		for (int lod = 0; lod < geometrys[geom].lods.size(); ++lod) {
+			std::string name = baseName;
+			if (geometrys.size() > 1) {
+				name.append(std::to_string(geom));
+			}
+			if (geometrys[geom].lods.size() > 1) {
+				name.append("_lod");
+				name.append(std::to_string(lod));
+			}
+			name.append(".dae");
+
+			auto doc = std::make_unique<rapidxml::xml_document<>>();
+			rapidxml::xml_node<>* root = Utils::createColladaFramework(*doc);
+			writeToCollada(*doc, root, geometrys[geom].lods[lod]);
+
+			std::ofstream output{ name };
+			std::cout << "   -->" << name << std::endl;
+			if (!output.good())
+				throw Utils::ConversionError("Can not write to output file " + name);
+			output << *doc;
+		}
 	}
 }
 
