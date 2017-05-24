@@ -1,6 +1,8 @@
 #include "SkinnedMesh.h"
 #include <map>
 #include <sstream>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 using namespace Utils;
 using namespace rapidxml;
@@ -28,6 +30,7 @@ SkinnedMesh::SkinnedMesh(std::istream& stream, const Skeleton& skeleton)
 	}
 
 	flipTextureCoords();
+	mirrorFix();
 }
 
 void SkinnedMesh::writeToCollada(xml_document<>& doc, xml_node<>* root, const Lod& lod) const
@@ -56,6 +59,9 @@ void SkinnedMesh::readRigs(std::istream& stream, Lod& lod) const
 	if (version <= 6)
 		readBinary(stream, &lod.pivot);
 
+	glm::mat4 mirrorMatrix{};
+	mirrorMatrix[0][0] = -1.0f;
+
 	uint32_t rigCount;
 	readBinary(stream, &rigCount);
 	lod.rigs.resize(rigCount);
@@ -66,6 +72,12 @@ void SkinnedMesh::readRigs(std::istream& stream, Lod& lod) const
 		for (MeshBone& bone : rig.bones) {
 			readBinary(stream, &bone.id);
 			readBinary(stream, &bone.matrix);
+			glm::quat rot{ bone.matrix };
+			glm::vec3 pos{ bone.matrix[3] };
+			rot.y = -rot.y;
+			rot.z = -rot.z;
+			pos.x = -pos.x;
+			bone.matrix = glm::translate(pos) * glm::mat4_cast(rot);
 		}
 	}
 }
