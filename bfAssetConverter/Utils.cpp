@@ -220,6 +220,8 @@ rapidxml::xml_node<>* Utils::createColladaFramework(rapidxml::xml_document<>& do
 	asset->append_node(doc.allocate_node(node_element, "up_axis", "Y_UP"));
 	root->append_node(asset);
 
+	root->append_node(doc.allocate_node(node_element, "library_effects"));
+	root->append_node(doc.allocate_node(node_element, "library_materials"));
 	root->append_node(doc.allocate_node(node_element, "library_images"));
 	root->append_node(doc.allocate_node(node_element, "library_geometries"));
 	root->append_node(doc.allocate_node(node_element, "library_animations"));
