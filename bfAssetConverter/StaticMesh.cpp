@@ -28,6 +28,9 @@ StaticMesh::StaticMesh(std::istream& stream)
 			}
 		}
 	}
+
+	flipTextureCoords();
+	mirrorFix();
 }
 
 void StaticMesh::writeToCollada(xml_document<>& doc, xml_node<>* root, const Lod& lod) const

@@ -104,7 +104,6 @@ void Mesh::mirrorFix()
 	for (const VertexAttrib& attrib : vertexAttribs) {
 		if (attrib.usage == VertexAttrib::normal) {
 			offset = attrib.offset / vertexformat;
-			std::cout << attrib.vartype << std::endl;
 			assert(attrib.vartype == VertexAttrib::float3);
 			break;
 		}
