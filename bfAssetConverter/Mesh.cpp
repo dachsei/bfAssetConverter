@@ -74,12 +74,45 @@ void Mesh::flipTextureCoords()
 		if (attrib.usage == VertexAttrib::uv1) {
 			offset = attrib.offset / vertexformat;
 			assert(attrib.vartype == VertexAttrib::float2);
+			break;
 		}
 	}
 	assert(offset != -1);
 
 	for (size_t i = offset + 1; i < vertices.size(); i += vertexstride / vertexformat) {	//+1 for the y component
 		vertices[i] = 1 - vertices[i];
+	}
+}
+
+void Mesh::mirrorFix()
+{
+	size_t offset = -1;
+	for (const VertexAttrib& attrib : vertexAttribs) {
+		if (attrib.usage == VertexAttrib::position) {
+			offset = attrib.offset / vertexformat;
+			assert(attrib.vartype == VertexAttrib::float3);
+			break;
+		}
+	}
+	assert(offset != -1);
+
+	for (size_t i = offset; i < vertices.size(); i += vertexstride / vertexformat) {
+		vertices[i] = -vertices[i];
+	}
+
+	offset = -1;
+	for (const VertexAttrib& attrib : vertexAttribs) {
+		if (attrib.usage == VertexAttrib::normal) {
+			offset = attrib.offset / vertexformat;
+			std::cout << attrib.vartype << std::endl;
+			assert(attrib.vartype == VertexAttrib::float3);
+			break;
+		}
+	}
+	assert(offset != -1);
+
+	for (size_t i = offset; i < vertices.size(); i += vertexstride / vertexformat) {
+		vertices[i] = -vertices[i];
 	}
 }
 
@@ -180,6 +213,7 @@ std::pair<char*, size_t> Mesh::writeVertexData(xml_document<>& doc, const Materi
 			case VertexAttrib::float2: elementCount = 2; break;
 			case VertexAttrib::float3: elementCount = 3; break;
 			}
+			break;
 		}
 	}
 	assert(offset != -1);

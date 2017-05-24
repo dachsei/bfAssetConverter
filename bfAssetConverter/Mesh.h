@@ -53,6 +53,7 @@ protected:
 
 	virtual void readMaterial(std::istream& stream, Material& material) const;
 	void flipTextureCoords();
+	void mirrorFix();
 
 	virtual void writeToCollada(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* root, const Lod& lod) const = 0;
 	char* writeGeometry(rapidxml::xml_document<>& doc, rapidxml::xml_node<>* libraryGeometries, const std::string& objectName,

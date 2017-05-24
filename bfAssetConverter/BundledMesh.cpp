@@ -35,6 +35,7 @@ BundledMesh::BundledMesh(std::istream& stream)
 	}
 
 	flipTextureCoords();
+	mirrorFix();
 }
 
 void BundledMesh::writeToCollada(xml_document<>& doc, xml_node<>* root, const Lod& lod) const
