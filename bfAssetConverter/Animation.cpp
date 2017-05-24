@@ -124,6 +124,11 @@ Animation::BoneData Animation::readBoneData(std::istream& stream, uint16_t boneI
 	}
 	for (glm::quat& rot : result.rotationStream) {
 		rot = glm::inverse(rot);
+		rot.y = -rot.y;
+		rot.z = -rot.z;
+	}
+	for (glm::vec3& pos : result.positionStream) {
+		pos.x = -pos.x;
 	}
 
 	return result;

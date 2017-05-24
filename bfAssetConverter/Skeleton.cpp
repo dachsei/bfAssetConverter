@@ -57,7 +57,10 @@ Skeleton::Bone Skeleton::readBone(std::istream& stream) const
 	readBinary(stream, &bone.parent);
 	readBinary(stream, &bone.rotation);
 	bone.rotation = glm::inverse(bone.rotation);
+	bone.rotation.y = -bone.rotation.y;
+	bone.rotation.z = -bone.rotation.z;
 	readBinary(stream, &bone.position);
+	bone.position.x = -bone.position.x;
 
 	return bone;
 }
