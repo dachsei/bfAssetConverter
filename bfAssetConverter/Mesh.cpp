@@ -245,7 +245,14 @@ std::pair<char*, size_t> Mesh::computeIndices(rapidxml::xml_document<>& doc, con
 {
 	std::stringstream ss;
 	size_t polycount = 0;
-	for (size_t i = 0; i < material.indexCount; ++i) {
+	for (size_t i = 0; i < material.indexCount; i += 3) {
+		//Reverse Vertex Order
+		for (size_t input = 0; input < inputCount; ++input) {
+			ss << indices[material.indexOffset + i + 2] << " ";
+		}
+		for (size_t input = 0; input < inputCount; ++input) {
+			ss << indices[material.indexOffset + i + 1] << " ";
+		}
 		for (size_t input = 0; input < inputCount; ++input) {
 			ss << indices[material.indexOffset + i] << " ";
 		}
