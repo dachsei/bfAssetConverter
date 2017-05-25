@@ -1,10 +1,13 @@
 #pragma once
 #include "Utils.h"
+#include <map>
 
 class CollisionMesh
 {
 public:
 	CollisionMesh(std::istream& stream);
+
+	void writeFiles(const std::string& baseName) const;
 
 protected:
 	struct Face {
@@ -29,6 +32,16 @@ protected:
 	struct Geometry {
 		std::vector<SubGeometry> subGeoms;
 	};
+
+	struct SimpleIndexedGeometry {
+		std::vector<float> vertices;
+		std::vector<size_t> indices;
+		std::map<glm::vec3, size_t> indexMap;
+
+		void addVertex(glm::vec3 vertex);
+	};
+
+	void WriteSimpleGeometry(const std::string& name, const SimpleIndexedGeometry& geometry) const;
 
 	void ReadGeometry(std::istream& stream, Geometry& geom) const;
 	void ReadSubGeometry(std::istream& stream, SubGeometry& geom) const;
