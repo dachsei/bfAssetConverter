@@ -151,6 +151,7 @@
   <ItemGroup>
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="BundledMesh.cpp" />
+    <ClCompile Include="CollisionMesh.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Skeleton.cpp" />
@@ -161,6 +162,7 @@
   <ItemGroup>
     <ClInclude Include="Animation.h" />
     <ClInclude Include="BundledMesh.h" />
+    <ClInclude Include="CollisionMesh.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Skeleton.h" />
     <ClInclude Include="SkinnedMesh.h" />
