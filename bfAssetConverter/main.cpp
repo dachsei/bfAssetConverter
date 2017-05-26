@@ -8,6 +8,7 @@
 #include "SkinnedMesh.h"
 #include "BundledMesh.h"
 #include "StaticMesh.h"
+#include "CollisionMesh.h"
 
 std::string getExtension(const std::string& filename);
 std::string defaultOutputFile(const std::string& filename);
@@ -102,6 +103,10 @@ void convertFile(std::istream& input, const std::string& output, const std::stri
 	}
 	else if (extension.compare("staticmesh") == 0) {
 		StaticMesh mesh{ input };
+		mesh.writeFiles(output);
+	}
+	else if (extension.compare("collisionmesh") == 0) {
+		CollisionMesh mesh{ input };
 		mesh.writeFiles(output);
 	}
 	else {
