@@ -24,24 +24,37 @@ CollisionMesh::CollisionMesh(std::istream& stream)
 
 void CollisionMesh::writeFiles(const std::string& baseName) const
 {
-	std::array<SimpleIndexedGeometry, 3> tmpGeometries;
+	//8 is the maximum material
+	std::array<std::array<SimpleIndexedGeometry, 8>, 3> tmpGeometries;
 
 	for (const Geometry& geom : geometrys) {
 		for (const SubGeometry& sub : geom.subGeoms) {
 			for (const Lod& lod : sub.lods) {
 				for (const Face& face : lod.faces) {
 					//Reverse Vertices
-					tmpGeometries[lod.coltype].addVertex(lod.vertices[face.v3]);
-					tmpGeometries[lod.coltype].addVertex(lod.vertices[face.v2]);
-					tmpGeometries[lod.coltype].addVertex(lod.vertices[face.v1]);
+					tmpGeometries[lod.coltype][face.m].addVertex(lod.vertices[face.v3]);
+					tmpGeometries[lod.coltype][face.m].addVertex(lod.vertices[face.v2]);
+					tmpGeometries[lod.coltype][face.m].addVertex(lod.vertices[face.v1]);
 				}
 			}
 		}
 	}
 
-	WriteSimpleGeometry(baseName + "_projectile" + ".dae", tmpGeometries[0]);
-	WriteSimpleGeometry(baseName + "_vehicle" + ".dae", tmpGeometries[1]);
-	WriteSimpleGeometry(baseName + "_soldier" + ".dae", tmpGeometries[2]);
+	for (size_t type = 0; type < tmpGeometries.size(); ++type) {
+		std::string name;
+		switch (type)
+		{
+		case 0: name = baseName + "_projectile_material";	break;
+		case 1: name = baseName + "_vehicle_material";		break;
+		case 2: name = baseName + "_soldier_material";		break;
+		}
+
+		for (size_t material = 0; material < tmpGeometries[type].size(); ++material) {
+			if (!tmpGeometries[type][material].indices.empty()) {
+				WriteSimpleGeometry(name + std::to_string(material) + ".dae", tmpGeometries[type][material]);
+			}
+		}
+	}
 }
 
 void CollisionMesh::WriteSimpleGeometry(const std::string& name, const SimpleIndexedGeometry& geometry) const
@@ -153,8 +166,8 @@ void CollisionMesh::ReadLod(std::istream& stream, Lod& lod) const
 	readBinary(stream, &vertexCount);
 	lod.vertices.resize(vertexCount);
 	readBinaryArray(stream, lod.vertices.data(), vertexCount);
-	for (size_t i = 0; i < lod.vertices.size(); i += 3) {
-		lod.vertices[i] = -lod.vertices[i];
+	for (glm::vec3& it : lod.vertices) {
+		it.x = -it.x;
 	}
 	lod.vertexIds.resize(vertexCount);
 	readBinaryArray(stream, lod.vertexIds.data(), vertexCount);

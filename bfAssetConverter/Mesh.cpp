@@ -117,8 +117,8 @@ void Mesh::mirrorFix()
 
 void Mesh::writeFiles(const std::string& baseName) const
 {
-	for (int geom = 0; geom < geometrys.size(); ++geom) {
-		for (int lod = 0; lod < geometrys[geom].lods.size(); ++lod) {
+	for (size_t geom = 0; geom < geometrys.size(); ++geom) {
+		for (size_t lod = 0; lod < geometrys[geom].lods.size(); ++lod) {
 			std::string name = baseName;
 			if (geometrys.size() > 1) {
 				name.append(std::to_string(geom));
