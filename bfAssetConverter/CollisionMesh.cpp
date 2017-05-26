@@ -30,9 +30,10 @@ void CollisionMesh::writeFiles(const std::string& baseName) const
 		for (const SubGeometry& sub : geom.subGeoms) {
 			for (const Lod& lod : sub.lods) {
 				for (const Face& face : lod.faces) {
-					tmpGeometries[lod.coltype].addVertex(lod.vertices[face.v1]);
-					tmpGeometries[lod.coltype].addVertex(lod.vertices[face.v2]);
+					//Reverse Vertices
 					tmpGeometries[lod.coltype].addVertex(lod.vertices[face.v3]);
+					tmpGeometries[lod.coltype].addVertex(lod.vertices[face.v2]);
+					tmpGeometries[lod.coltype].addVertex(lod.vertices[face.v1]);
 				}
 			}
 		}
@@ -152,6 +153,9 @@ void CollisionMesh::ReadLod(std::istream& stream, Lod& lod) const
 	readBinary(stream, &vertexCount);
 	lod.vertices.resize(vertexCount);
 	readBinaryArray(stream, lod.vertices.data(), vertexCount);
+	for (size_t i = 0; i < lod.vertices.size(); i += 3) {
+		lod.vertices[i] = -lod.vertices[i];
+	}
 	lod.vertexIds.resize(vertexCount);
 	readBinaryArray(stream, lod.vertexIds.data(), vertexCount);
 
@@ -185,5 +189,10 @@ void CollisionMesh::SimpleIndexedGeometry::addVertex(glm::vec3 vertex)
 		vertices.push_back(vertex.y);
 		vertices.push_back(vertex.z);
 	}
-	indices.push_back(ins.first->second);
+	indices.push_back(ins.first->second / 3);
+}
+
+bool std::operator<(const glm::vec3& lhs, const glm::vec3& rhs)
+{
+	return std::tie(lhs.x, lhs.y, lhs.z) < std::tie(rhs.x, rhs.y, rhs.z);
 }

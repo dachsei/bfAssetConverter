@@ -2,6 +2,10 @@
 #include "Utils.h"
 #include <map>
 
+namespace std {
+	bool operator<(const glm::vec3& lhs, const glm::vec3& rhs);
+}
+
 class CollisionMesh
 {
 public:
